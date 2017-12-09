@@ -1,7 +1,8 @@
 ## Çeviri hakkında
 Bu betik [Nyr](https://github.com/Nyr/) tarafından yazılımış bir [road warrior](http://en.wikipedia.org/wiki/Road_warrior_%28computing%29) kodun, Türkçe sürümüdür. Master branch'a gelen güncellemeleri otomatik almayacaktır. Türkçe bilen kullanıcılar için kolaylık olması amacıyla çevrilmiştir.
 
-*Dikkat* Çevirinin, Aralık 2017 ayı içerisinde başlayıp bitirilmesi planlanmaktadır.
+*Dikkat* Çeviri, büyük çoğunlukla bitmiştir. Ufak tefek hatalar kalmıştır.
+Sihirbazın nasıl kullanılacağını şu [blog yazımda](https://www.mburaks.com/openvpn-sihirbazi-turkce/) bulabilirsiniz.
 
 ## openvpn-install
 
