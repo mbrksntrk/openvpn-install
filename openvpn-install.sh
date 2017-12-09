@@ -1,7 +1,7 @@
 #!/bin/bash
 # Debian, Ubuntu ve CentOS sistemler için OpenVPN hızlı yükleme sihirbazı.
 
-# Bu betik, Debian, Ubuntu ve CentOS sistemlere OpenVPN sunucusu kurmanıza,
+# Bu sihirbaz, Debian, Ubuntu ve CentOS sistemlere OpenVPN sunucusu kurmanıza,
 # ardından kullanıcılar için bağlanacak sertifikaları oluşturmanıza
 # imkan verir. Olabildiğince güvenli ve kolay yoldan kendi OpenVPN
 # sunucunuzu yapılandırmanız için geliştirilmiştir.
@@ -10,12 +10,12 @@
 
 # Debian kullanıcılarının bash yerine sh kullanmasını tespit eder.
 if readlink /proc/$$/exe | grep -qs "dash"; then
-	echo "Bu betik bash ile çalışmalıdır. (sh ile değil)"
+	echo "Bu sihirbaz bash ile çalışmalıdır. (sh ile değil)"
 	exit 1
 fi
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "Üzgünüm, root yetkileri ile çalıştırmanız gerekiyor."
+	echo "Üzgünüm, Sihirbazı root yetkileri ile çalıştırmanız gerekiyor."
 	exit 2
 fi
 
@@ -39,7 +39,7 @@ elif [[ -e /etc/centos-release || -e /etc/redhat-release ]]; then
 	RCLOCAL='/etc/rc.d/rc.local'
 else
 	echo "Debian, Ubuntu veya CentOS ile çalışmıyorsunuz gibi görünüyor.
-Bu betik yalnızca bu sistemler üzerinde çalışır."
+Bu sihirbaz yalnızca bu sistemler üzerinde çalışır."
 	exit 5
 fi
 

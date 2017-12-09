@@ -8,8 +8,8 @@ Bu betik [Nyr](https://github.com/Nyr/) tarafından yazılımış bir [road warr
 Bu betik, Debian, Ubuntu ve CentOS sistemlere OpenVPN sunucusu kurmanıza, ardından kullanıcılar için bağlanacak sertifikaları oluşturmanıza imkan verir. Olabildiğince güvenli ve kolay yoldan kendi OpenVPN sunucunuzu yapılandırmanız için geliştirilmiştir.
 
 ### Yükleme
-Betiği bilgisayarınızda çalıştırmak için alltaki kodu çalıştırmanız ve yönergeleri takip etmeniz yeterlidir.
-`wget https://git.io/vpn-tr -O openvpn-install.sh && bash openvpn-install.sh`
+Betiği bilgisayarınızda çalıştırmak için altaki kodu çalıştırmanız ve yönergeleri takip etmeniz yeterlidir.
+`wget https://git.io/vpntr -O openvpn-install.sh && bash openvpn-install.sh`
 
 İlk çalışmada OpenVPN kurulumundan sonra kullanıcı dosyalarını oluşturmak, düzenlemek ve sunucuyu kaldırmak için tekrar çalıştırmanız gerekir.
 
