@@ -1,32 +1,32 @@
 #!/bin/bash
-# OpenVPN road warrior installer for Debian, Ubuntu and CentOS
+# Debian, Ubuntu ve CentOS sistemler için OpenVPN hızlı yükleme sihirbazı.
 
-# This script will work on Debian, Ubuntu, CentOS and probably other distros
-# of the same families, although no support is offered for them. It isn't
-# bulletproof but it will probably work if you simply want to setup a VPN on
-# your Debian/Ubuntu/CentOS box. It has been designed to be as unobtrusive and
-# universal as possible.
+# Bu betik, Debian, Ubuntu ve CentOS sistemlere OpenVPN sunucusu kurmanıza,
+# ardından kullanıcılar için bağlanacak sertifikaları oluşturmanıza
+# imkan verir. Olabildiğince güvenli ve kolay yoldan kendi OpenVPN
+# sunucunuzu yapılandırmanız için geliştirilmiştir.
+# Orijinal: https://github.com/Nyr/openvpn-install
+# Türkçe: https://github.com/mbrksntrk/openvpn-install-tr
 
-
-# Detect Debian users running the script with "sh" instead of bash
+# Debian kullanıcılarının bash yerine sh kullanmasını tespit eder.
 if readlink /proc/$$/exe | grep -qs "dash"; then
-	echo "This script needs to be run with bash, not sh"
+	echo "Bu betik bash ile çalışmalıdır. (sh ile değil)"
 	exit 1
 fi
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "Sorry, you need to run this as root"
+	echo "Üzgünüm, root yetkileri ile çalıştırmanız gerekiyor."
 	exit 2
 fi
 
 if [[ ! -e /dev/net/tun ]]; then
-	echo "The TUN device is not available
-You need to enable TUN before running this script"
+	echo "TUN cihazı aktif değil.
+Bu betiği çalıştırmadan önce TUN cihazını aktifleştirin."
 	exit 3
 fi
 
-if grep -qs "CentOS release 5" "/etc/redhat-release"; then
-	echo "CentOS 5 is too old and not supported"
+if grep -qs "CentOS sürüm 5" "/etc/redhat-release"; then
+	echo "CentOS 5 çok eski ve artık desteklenmiyor."
 	exit 4
 fi
 if [[ -e /etc/debian_version ]]; then
@@ -38,12 +38,13 @@ elif [[ -e /etc/centos-release || -e /etc/redhat-release ]]; then
 	GROUPNAME=nobody
 	RCLOCAL='/etc/rc.d/rc.local'
 else
-	echo "Looks like you aren't running this installer on Debian, Ubuntu or CentOS"
+	echo "Debian, Ubuntu veya CentOS ile çalışmıyorsunuz gibi görünüyor.
+Bu betik yalnızca bu sistemler üzerinde çalışır."
 	exit 5
 fi
 
 newclient () {
-	# Generates the custom client.ovpn
+	# Özelleştirilmiş kullanıcı.ovpn dosyası oluşturur.
 	cp /etc/openvpn/client-common.txt ~/$1.ovpn
 	echo "<ca>" >> ~/$1.ovpn
 	cat /etc/openvpn/easy-rsa/pki/ca.crt >> ~/$1.ovpn
@@ -59,9 +60,9 @@ newclient () {
 	echo "</tls-auth>" >> ~/$1.ovpn
 }
 
-# Try to get our IP from the system and fallback to the Internet.
-# I do this to make the script compatible with NATed servers (lowendspirit.com)
-# and to avoid getting an IPv6.
+# Sunucunun internet üzerindeki herkese açık IP adresini öğrenmeye çalışır. .
+# NATed sunucuları ile uyumlu tasarlanmıştır. (lowendspirit.com)
+
 IP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
 if [[ "$IP" = "" ]]; then
 		IP=$(wget -4qO- "http://whatismyip.akamai.com/")
@@ -71,26 +72,26 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 	while :
 	do
 	clear
-		echo "Looks like OpenVPN is already installed"
+		echo "OpenVPN zaten yüklü görünüyor."
 		echo ""
-		echo "What do you want to do?"
-		echo "   1) Add a new user"
-		echo "   2) Revoke an existing user"
-		echo "   3) Remove OpenVPN"
-		echo "   4) Exit"
-		read -p "Select an option [1-4]: " option
+		echo "Ne yapmak istersiniz?"
+		echo "   1) Yeni bir kullanıcı ekle"
+		echo "   2) Bir kullanıcıyı kaldır"
+		echo "   3) OpenVPN'i sistemden kaldır"
+		echo "   4) Çık"
+		read -p "Bir seçenek seçin [1-4]: " option
 		case $option in
-			1) 
+			1)
 			echo ""
-			echo "Tell me a name for the client certificate"
-			echo "Please, use one word only, no special characters"
-			read -p "Client name: " -e -i client CLIENT
+			echo "Bu kullanıcı sertifikası için bir isim verin."
+			echo "Lütfen İngilizce karakterlerden oluşan yalnızca bir kelime kullanın."
+			read -p "Kullanıcı adı: " -e -i client CLIENT
 			cd /etc/openvpn/easy-rsa/
 			./easyrsa build-client-full $CLIENT nopass
-			# Generates the custom client.ovpn
+			# Özelleştirilmiş kullanıcı.ovpn dosyası oluşturur.
 			newclient "$CLIENT"
 			echo ""
-			echo "Client $CLIENT added, configuration is available at" ~/"$CLIENT.ovpn"
+			echo "$CLIENT kullanıcısı eklendi, Konfigürasyon dosyası adresi: " ~/"$CLIENT.ovpn"
 			exit
 			;;
 			2)
@@ -99,16 +100,16 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			NUMBEROFCLIENTS=$(tail -n +2 /etc/openvpn/easy-rsa/pki/index.txt | grep -c "^V")
 			if [[ "$NUMBEROFCLIENTS" = '0' ]]; then
 				echo ""
-				echo "You have no existing clients!"
+				echo "Bu sunucuda hiç kullanıcı yok."
 				exit 6
 			fi
 			echo ""
-			echo "Select the existing client certificate you want to revoke"
+			echo "Sertifikasını iptal etmek istediğiniz kullanıcıyı seçin."
 			tail -n +2 /etc/openvpn/easy-rsa/pki/index.txt | grep "^V" | cut -d '=' -f 2 | nl -s ') '
 			if [[ "$NUMBEROFCLIENTS" = '1' ]]; then
-				read -p "Select one client [1]: " CLIENTNUMBER
+				read -p "Kullanıcıyı seçin [1]: " CLIENTNUMBER
 			else
-				read -p "Select one client [1-$NUMBEROFCLIENTS]: " CLIENTNUMBER
+				read -p "Kullanıcıyı seçin [1-$NUMBEROFCLIENTS]: " CLIENTNUMBER
 			fi
 			CLIENT=$(tail -n +2 /etc/openvpn/easy-rsa/pki/index.txt | grep "^V" | cut -d '=' -f 2 | sed -n "$CLIENTNUMBER"p)
 			cd /etc/openvpn/easy-rsa/
@@ -122,13 +123,13 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			# CRL is read with each client connection, when OpenVPN is dropped to nobody
 			chown nobody:$GROUPNAME /etc/openvpn/crl.pem
 			echo ""
-			echo "Certificate for client $CLIENT revoked"
+			echo "$CLIENT kaldırıldı ve sertifikası iptal edildi."
 			exit
 			;;
-			3) 
+			3)
 			echo ""
-			read -p "Do you really want to remove OpenVPN? [y/n]: " -e -i n REMOVE
-			if [[ "$REMOVE" = 'y' ]]; then
+			read -p "OpenVPN'i kaldırmak istediğinizden emin misiniz? [e/h]: " -e -i n REMOVE
+			if [[ "$REMOVE" = 'e' ]]; then
 				PORT=$(grep '^port ' /etc/openvpn/server.conf | cut -d " " -f 2)
 				PROTOCOL=$(grep '^proto ' /etc/openvpn/server.conf | cut -d " " -f 2)
 				if pgrep firewalld; then
@@ -167,10 +168,10 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 				fi
 				rm -rf /etc/openvpn
 				echo ""
-				echo "OpenVPN removed!"
+				echo "OpenVPN kaldırıldı!"
 			else
 				echo ""
-				echo "Removal aborted!"
+				echo "Kaldırma işlemi iptal edildi."
 			fi
 			exit
 			;;
@@ -179,34 +180,34 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 	done
 else
 	clear
-	echo 'Welcome to this quick OpenVPN "road warrior" installer'
+	echo 'OpenVPN Kolay Yükleme Sihirbazına Hoş Geldiniz.'
 	echo ""
 	# OpenVPN setup and first user creation
-	echo "I need to ask you a few questions before starting the setup"
-	echo "You can leave the default options and just press enter if you are ok with them"
+	echo "Başlamadan önce bir kaç soru sormam gerekiyor."
+	echo "Eğer varsayılan ayarları kullanmak istiyorsanız doğrudan Enter'a basabilirsiniz."
 	echo ""
-	echo "First I need to know the IPv4 address of the network interface you want OpenVPN"
-	echo "listening to."
-	read -p "IP address: " -e -i $IP IP
+	echo "Öncelikle OpenVPN'in dinleyeceği ağ arayüzünün IPv4 adresini girin"
 	echo ""
-	echo "Which protocol do you want for OpenVPN connections?"
-	echo "   1) UDP (recommended)"
+	read -p "IP adresi: " -e -i $IP IP
+	echo ""
+	echo "OpenVPN bağlantıları için hangi protokolü kullanmak istiyorsunuz?"
+	echo "   1) UDP (Önerilen)"
 	echo "   2) TCP"
-	read -p "Protocol [1-2]: " -e -i 1 PROTOCOL
+	read -p "Protokol [1-2]: " -e -i 1 PROTOCOL
 	case $PROTOCOL in
-		1) 
+		1)
 		PROTOCOL=udp
 		;;
-		2) 
+		2)
 		PROTOCOL=tcp
 		;;
 	esac
 	echo ""
-	echo "What port do you want OpenVPN listening to?"
+	echo "OpenVPN hangi port üzerinde çalışsın?"
 	read -p "Port: " -e -i 1194 PORT
 	echo ""
-	echo "Which DNS do you want to use with the VPN?"
-	echo "   1) Current system resolvers"
+	echo "VPN ile hangi DNS hizmetini kullanmak istiyorsunuz?"
+	echo "   1) Sistem varsayılanını kullan"
 	echo "   2) Google"
 	echo "   3) OpenDNS"
 	echo "   4) NTT"
@@ -214,12 +215,12 @@ else
 	echo "   6) Verisign"
 	read -p "DNS [1-6]: " -e -i 1 DNS
 	echo ""
-	echo "Finally, tell me your name for the client certificate"
-	echo "Please, use one word only, no special characters"
+	echo "Sonunda, ilk kullanıcı için bir isim belirtin."
+	echo "Lütfen İngilizce karakterlerden oluşan yalnızca bir kelime kullanın."
 	read -p "Client name: " -e -i client CLIENT
 	echo ""
-	echo "Okay, that was all I needed. We are ready to setup your OpenVPN server now"
-	read -n1 -r -p "Press any key to continue..."
+	echo "Tamamdır :) Şimdi bilgisayara OpenVPN kurmaya hazırız."
+	read -n1 -r -p "Devam etmek için bir tuşa basın..."
 	if [[ "$OS" = 'debian' ]]; then
 		apt-get update
 		apt-get install openvpn iptables openssl ca-certificates -y
@@ -274,13 +275,13 @@ ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
 	echo 'push "redirect-gateway def1 bypass-dhcp"' >> /etc/openvpn/server.conf
 	# DNS
 	case $DNS in
-		1) 
+		1)
 		# Obtain the resolvers from resolv.conf and use them for OpenVPN
 		grep -v '#' /etc/resolv.conf | grep 'nameserver' | grep -E -o '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | while read line; do
 			echo "push \"dhcp-option DNS $line\"" >> /etc/openvpn/server.conf
 		done
 		;;
-		2) 
+		2)
 		echo 'push "dhcp-option DNS 8.8.8.8"' >> /etc/openvpn/server.conf
 		echo 'push "dhcp-option DNS 8.8.4.4"' >> /etc/openvpn/server.conf
 		;;
@@ -288,14 +289,14 @@ ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
 		echo 'push "dhcp-option DNS 208.67.222.222"' >> /etc/openvpn/server.conf
 		echo 'push "dhcp-option DNS 208.67.220.220"' >> /etc/openvpn/server.conf
 		;;
-		4) 
+		4)
 		echo 'push "dhcp-option DNS 129.250.35.250"' >> /etc/openvpn/server.conf
 		echo 'push "dhcp-option DNS 129.250.35.251"' >> /etc/openvpn/server.conf
 		;;
-		5) 
+		5)
 		echo 'push "dhcp-option DNS 74.82.42.42"' >> /etc/openvpn/server.conf
 		;;
-		6) 
+		6)
 		echo 'push "dhcp-option DNS 64.6.64.6"' >> /etc/openvpn/server.conf
 		echo 'push "dhcp-option DNS 64.6.65.6"' >> /etc/openvpn/server.conf
 		;;
@@ -384,11 +385,11 @@ exit 0' > $RCLOCAL
 	EXTERNALIP=$(wget -4qO- "http://whatismyip.akamai.com/")
 	if [[ "$IP" != "$EXTERNALIP" ]]; then
 		echo ""
-		echo "Looks like your server is behind a NAT!"
+		echo "Görünüşe göre sunucunuz NAT ağının arkasında."
 		echo ""
-		echo "If your server is NATed (e.g. LowEndSpirit), I need to know the external IP"
-		echo "If that's not the case, just ignore this and leave the next field blank"
-		read -p "External IP: " -e USEREXTERNALIP
+		echo "Eğer sunucunuz NATlanmışsa, dış ağınızdaki IP adresinizi öğrenmem gerekiyor"
+		echo "Eğer böyle bir durum yoksa, bu uyarıyı yoksayıp Enter'a basabilirsiniz."
+		read -p "Dış ağ IP adresi: " -e USEREXTERNALIP
 		if [[ "$USEREXTERNALIP" != "" ]]; then
 			IP=$USEREXTERNALIP
 		fi
@@ -414,8 +415,8 @@ verb 3" > /etc/openvpn/client-common.txt
 	# Generates the custom client.ovpn
 	newclient "$CLIENT"
 	echo ""
-	echo "Finished!"
+	echo "Bitti!"
 	echo ""
-	echo "Your client configuration is available at" ~/"$CLIENT.ovpn"
-	echo "If you want to add more clients, you simply need to run this script again!"
+	echo "$CLIENT kullanıcısı eklendi, Konfigürasyon dosyası adresi: " ~/"$CLIENT.ovpn"
+	echo "Eğer kullanıcı eklemek veya kaldırmak isterseniz, bu dosyayı yeniden çalıştırın!"
 fi
